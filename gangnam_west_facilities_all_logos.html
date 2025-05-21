@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>강남 서부 체육시설</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .facility-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .facility-box {
+      width: 220px;
+      min-height: 150px;
+      border: 2px solid #888;
+      border-radius: 10px;
+      padding: 10px;
+      background-color: #fff;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .facility-box.gangseo::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 120px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Gangseo%2C_Seoul.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.25;
+      z-index: 0;
+    }
+
+    .facility-box.yangcheon::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 120px;
+      background-image: url('https://www.newsro.kr/wp-content/uploads/2017/07/%EC%96%91%EC%B2%9C%EA%B5%AC%EC%B2%AD.jpg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.25;
+      z-index: 0;
+    }
+
+    .facility-box.guro::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 120px;
+      background-image: url('https://img6.yna.co.kr/etc/inner/KR/2018/12/31/AKR20181231253800004_01_i_P2.jpg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.25;
+      z-index: 0;
+    }
+
+    .facility-box.ydp::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 120px;
+      background-image: url('https://wiki1.kr/images/a/ab/%EC%98%81%EB%93%B1%ED%8F%AC%EA%B5%AC_%EA%B5%AC%EA%B8%B0.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.25;
+      z-index: 0;
+    }
+
+    .facility-name,
+    .area,
+    .reservation {
+      position: relative;
+      z-index: 2;
+    }
+
+    .facility-name {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .area {
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .reservation {
+      font-size: 14px;
+    }
+
+    .reservation a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>강남 서부 체육시설 목록</h1>
+  <div class="facility-container">
+    <div class="facility-box gangseo">
+      <div class="facility-name">강서체육센터</div>
+      <div class="area">면적: 3,500㎡</div>
+      <div class="reservation">
+        <a href="https://sports.gangseo.seoul.kr/fmcs/28" target="_blank">자세한 정보: 해당 문구를 클릭하세요</a>
+      </div>
+    </div>
+    <div class="facility-box yangcheon">
+      <div class="facility-name">양천종합운동장</div>
+      <div class="area">면적: 5,200㎡</div>
+      <div class="reservation">
+        <a href="https://www.ycs.or.kr/fmcs/3" target="_blank">자세한 정보: 해당 문구를 클릭하세요</a>
+      </div>
+    </div>
+    <div class="facility-box guro">
+      <div class="facility-name">구로구 체육시설</div>
+      <div class="area">면적: 4,700㎡</div>
+      <div class="reservation">
+        <a href="https://www.guro.go.kr/www/contents.do?key=2943" target="_blank">자세한 정보: 해당 문구를 클릭하세요</a>
+      </div>
+    </div>
+    <div class="facility-box ydp">
+      <div class="facility-name">영등포구 체육시설</div>
+      <div class="area">면적: 5,000㎡</div>
+      <div class="reservation">
+        <a href="https://www.ydp.go.kr/www/contents.do?key=2919&" target="_blank">자세한 정보: 해당 문구를 클릭하세요</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
