@@ -1,63 +1,135 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>서울 공공체육시설 모음집</title>
-  <meta name="description" content="서울시 공공체육시설의 예약 링크와 이미지를 정리한 모음집입니다.">
-  <meta name="keywords" content="서울, 공공체육시설, 체육관, 운동, 예약, 구청, 체육센터">
-  <meta name="robots" content="index, follow">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>서울시 체육시설 구역 지도</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
+      display: flex;
+      height: 100vh;
       margin: 0;
+      background-color: #f4f4f9;
+      align-items: center;
+      justify-content: space-between;
       padding: 20px;
+      background-image: url('https://raw.githubusercontent.com/jaeyup0303/my-images/main/%EC%B2%B4%EC%9C%A1%EC%8B%9C%EC%84%A4%20%EC%9D%B4%EB%AF%B8%EC%A7%80.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(5px);
+      z-index: -1;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    .region-box {
-      background-color: #ffffff;
-      border: 2px solid #0077cc;
-      border-radius: 10px;
-      text-align: center;
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       padding: 20px;
+      width: 180px;
+      background-color: #ddd;
+      border-radius: 8px;
+    }
+
+    .region-table {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .region-table td {
+      border: 1px solid #333;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      background-color: #eee;
+      font-weight: bold;
+    }
+
+    .region-table td:hover {
+      background-color: #ccc;
+    }
+
+    .info-box {
       font-size: 18px;
       font-weight: bold;
-      transition: background-color 0.3s, color 0.3s;
+      margin-top: 10px;
+      height: 24px;
     }
-    .region-box a {
-      text-decoration: none;
-      color: #0077cc;
-      display: block;
+
+    .map-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 10px;
     }
-    .region-box:hover {
-      background-color: #0077cc;
+
+    .region-box {
+      width: 180px;
+      height: 100px;
+      text-align: center;
+      line-height: 100px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      border-radius: 10px;
     }
-    .region-box:hover a {
-      color: #ffffff;
-    }
+
+    .region-1 { background-color: rgba(255, 99, 132, 0.8); }
+    .region-2 { background-color: rgba(54, 162, 235, 0.8); }
+    .region-3 { background-color: rgba(255, 206, 86, 0.8); }
+    .region-4 { background-color: rgba(75, 192, 192, 0.8); }
+    .region-5 { background-color: rgba(153, 102, 255, 0.8); }
+    .region-6 { background-color: rgba(255, 159, 64, 0.8); }
   </style>
 </head>
 <body>
-  <h1>서울 공공체육시설 모음집</h1>
-  <div class="grid">
-    <div class="region-box"><a href="gangnam_west.html">강남 서부</a></div>
-    <div class="region-box"><a href="gangnam_middle.html">강남 중부</a></div>
-    <div class="region-box"><a href="gangnam_east.html">강남 동부</a></div>
-    <div class="region-box"><a href="gangbuk_west.html">강북 서부</a></div>
-    <div class="region-box"><a href="gangbuk_middle.html">강북 중부</a></div>
-    <div class="region-box"><a href="gangbuk_east.html">강북 동부</a></div>
+  <div class="sidebar">
+    <button onclick="toggleRegions()">서울</button>
+    <table class="region-table" id="regionTable">
+      <tr><td onmouseover="showInfo('강북 서부: 마포구, 서대문구, 은평구')" onmouseout="hideInfo()">강북 서부</td></tr>
+      <tr><td onmouseover="showInfo('강북 중부: 도봉구, 강북구, 성북구, 종로구, 중구, 용산구')" onmouseout="hideInfo()">강북 중부</td></tr>
+      <tr><td onmouseover="showInfo('강북 동부: 성동구, 동대문구, 광진구, 중랑구, 노원구')" onmouseout="hideInfo()">강북 동부</td></tr>
+      <tr><td onmouseover="showInfo('강남 서부: 영등포구, 구로구, 양천구, 강서구')" onmouseout="hideInfo()" onclick="location.href='gangnam_west_facilities_all_logos.html'">강남 서부</td></tr>
+      <tr><td onmouseover="showInfo('강남 중부: 동작구, 금천구, 관악구, 서초구')" onmouseout="hideInfo()">강남 중부</td></tr>
+      <tr><td onmouseover="showInfo('강남 동부: 강남구, 송파구, 강동구')" onmouseout="hideInfo()">강남 동부</td></tr>
+    </table>
+    <div class="info-box" id="infoBox"></div>
   </div>
+
+  <div class="map-container">
+    <div class="region-box region-1">강북 서부</div>
+    <div class="region-box region-2">강북 중부</div>
+    <div class="region-box region-3">강북 동부</div>
+    <div class="region-box region-4">강남 서부</div>
+    <div class="region-box region-5">강남 중부</div>
+    <div class="region-box region-6">강남 동부</div>
+  </div>
+
+  <script>
+    function showInfo(text) {
+      document.getElementById("infoBox").textContent = text;
+    }
+
+    function hideInfo() {
+      document.getElementById("infoBox").textContent = "";
+    }
+
+    function toggleRegions() {
+      // 필요시 동작 추가 가능
+    }
+  </script>
 </body>
 </html>
 
