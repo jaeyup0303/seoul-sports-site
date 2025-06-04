@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>서울시 농구장·축구장 정보 (구별)</title>
+  <title>서울시 농구장·축구장 정보 (구별) - Codetabs CORS 우회</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -51,13 +51,13 @@
       font-weight: bold;
     }
     .badge-basketball {
-      background-color: #4a90e2; /* 농구장: 파란 계열 */
+      background-color: #4a90e2; /* 농구장: 파란색 */
     }
     .badge-soccer {
-      background-color: #7ed321; /* 축구장: 초록 계열 */
+      background-color: #7ed321; /* 축구장: 초록색 */
     }
     .badge-swimming {
-      background-color: #50e3c2; /* 수영장: 청록 계열 */
+      background-color: #50e3c2; /* 수영장: 청록색 (필요 시) */
     }
     .facility .name {
       font-size: 1.1em;
@@ -81,9 +81,9 @@
   </style>
 </head>
 <body>
-  <h1>서울시 농구장·축구장 정보 (구별)</h1>
+  <h1>서울시 농구장·축구장 정보 (구별) - Codetabs CORS 우회</h1>
 
-  <!-- 버튼 영역 -->
+  <!-- 1) 버튼 영역 -->
   <div id="buttons">
     <button onclick="showFacilities('강동구')">강동구</button>
     <button onclick="showFacilities('양천구')">양천구</button>
@@ -92,25 +92,33 @@
     <button onclick="showFacilities('금천구')">금천구</button>
   </div>
 
-  <!-- 결과 출력 영역 -->
+  <!-- 2) 결과 출력 영역 -->
   <div id="results"></div>
 
   <script>
-    // 전역 변수: API가 로드되면 이곳에 모든 시설 데이터가 저장됨.
+    // 전역 변수: API가 로드되면 이곳에 모든 시설 데이터가 저장됩니다.
     let facilities = null;
 
-    // 페이지 로드 후, 한 번만 API를 가져옴
+    // 페이지 로드 직후, 한 번만 OpenAPI 데이터를 가져옵니다.
     window.addEventListener("DOMContentLoaded", () => {
       const API_KEY = "7a4c614179776f7432396372726b47";
+      // 서울시 OpenAPI 원본 URL (END 인덱스를 2000으로 설정)
+      const ORIGINAL_BASE = 
+        "https://openapi.seoul.go.kr/" +
+        API_KEY + "/xml/ListPublicReservationSport/1/2000/";
 
-      // —— END 인덱스를 1000으로 늘려서 더 많은 데이터를 가져옴 ——  
-      const BASE_URL = "https://openapi.seoul.go.kr/" +
-                       API_KEY + "/xml/ListPublicReservationSport/1/1000/";
-
+      //	Codetabs CORS 프록시를 경유한 최종 요청 URL을 만들어 줍니다.
+      //	형식: https://api.codetabs.com/v1/proxy?quest={encodeURIComponent(원본URL)}
       const urls = [
-        { type: "농구장", url: BASE_URL + "농구장" },
-        { type: "축구장", url: BASE_URL + "축구장" }
-        // (필요 시) { type: "수영장", url: BASE_URL + "수영장" }
+        {
+          type: "농구장",
+          url: "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(ORIGINAL_BASE + "농구장")
+        },
+        {
+          type: "축구장",
+          url: "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(ORIGINAL_BASE + "축구장")
+        }
+        // 필요 시 { type: "수영장", url: "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(ORIGINAL_BASE + "수영장") } 추가
       ];
 
       Promise.all(
@@ -124,13 +132,13 @@
             .then(xml => {
               const rows = xml.querySelectorAll("row");
               return Array.from(rows).map(row => ({
-                type:  entry.type,
-                area:  row.querySelector("AREANM")?.textContent || "",
-                name:  row.querySelector("SVCNM")?.textContent  || "",
-                place: row.querySelector("PLACENM")?.textContent|| "",
-                tel:   row.querySelector("TEL")?.textContent    || "없음",
+                type:   entry.type,  // “농구장” 또는 “축구장”
+                area:   row.querySelector("AREANM")?.textContent || "",
+                name:   row.querySelector("SVCNM")?.textContent  || "",
+                place:  row.querySelector("PLACENM")?.textContent || "",
+                tel:    row.querySelector("TEL")?.textContent     || "없음",
                 status: row.querySelector("SVCSTATNM")?.textContent || "",
-                url:   row.querySelector("SVCURL")?.textContent  || ""
+                url:    row.querySelector("SVCURL")?.textContent   || ""
               }));
             })
         )
@@ -142,11 +150,11 @@
       })
       .catch(err => {
         console.error("데이터 로드 중 오류 발생:", err);
-        facilities = []; // 빈 배열로 두면 “오류로 인해 데이터 없음” 메시지 표시
+        facilities = []; // 빈 배열로 두면 클릭 시 “데이터 없음” 메시지 표시
       });
     });
 
-    // 버튼 클릭 시 해당 구 데이터만 필터해서 화면에 표시
+    // 버튼 클릭 시 해당 구의 데이터만 화면에 표시하는 함수
     function showFacilities(areaName) {
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = `<h2>${areaName} 농구장·축구장 목록</h2>`;
@@ -157,20 +165,20 @@
         return;
       }
 
-      // (2) API 로드 완료 후에도 오류나 데이터가 없는 상태 = facilities.length === 0
+      // (2) API 로드 완료 후에도 오류 or 데이터 없는 상태 = facilities.length === 0
       if (facilities.length === 0) {
         resultsDiv.innerHTML += "<p>오류로 인해 시설 정보를 불러올 수 없거나, 데이터가 없습니다.</p>";
         return;
       }
 
-      // (3) 실제 선택된 구에 해당하는 데이터만 필터
+      // (3) 선택한 구에 해당하는 데이터만 필터
       const list = facilities.filter(item => item.area === areaName);
       if (list.length === 0) {
         resultsDiv.innerHTML += "<p>해당 구에 등록된 농구장·축구장 정보가 없습니다.</p>";
         return;
       }
 
-      // (4) 잘 필터된 데이터가 있으면, 화면에 하나씩 렌더링
+      // (4) 필터링된 데이터가 있으면 화면에 하나씩 렌더링
       list.forEach(f => {
         let badgeClass = "";
         if (f.type === "농구장")    badgeClass = "badge-basketball";
@@ -197,4 +205,5 @@
   </script>
 </body>
 </html>
+
 
