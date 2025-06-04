@@ -1,116 +1,229 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>서울 농구장·축구장 지역별 정보</title>
+  <meta charset="UTF-8" />
+  <title>서울시 농구장·축구장 정보 (구별) - JSON + Codetabs CORS 우회</title>
   <style>
-    button {
-      margin: 5px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #888;
-      background-color: #f0f0f0;
-      cursor: pointer;
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
-    #buttons, #results {
-      margin-top: 20px;
+    h1 {
+      margin-bottom: 15px;
+    }
+    button {
+      margin: 0 5px 10px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #888;
+      background-color: #fafafa;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #eee;
+    }
+    #buttons {
+      margin-bottom: 20px;
+    }
+    #results {
+      margin-top: 10px;
     }
     .facility {
-      margin: 10px 0;
-      padding: 10px;
+      margin: 15px 0;
+      padding: 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      background-color: #f9f9f9;
     }
-    .type {
+    .facility .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .type-badge {
       display: inline-block;
-      font-size: 0.9em;
-      padding: 2px 6px;
-      margin-right: 8px;
+      font-size: 0.85em;
+      padding: 2px 8px;
+      margin-right: 10px;
       border-radius: 4px;
-      background-color: #d0eaff;
-      color: #005b99;
+      color: white;
+      font-weight: bold;
+    }
+    .badge-basketball {
+      background-color: #4a90e2; /* 농구장: 파란색 */
+    }
+    .badge-soccer {
+      background-color: #7ed321; /* 축구장: 초록색 */
+    }
+    .badge-swimming {
+      background-color: #50e3c2; /* 수영장: 청록색 (필요 시) */
+    }
+    .facility .name {
+      font-size: 1.1em;
+      font-weight: bold;
+    }
+    .facility .info {
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .facility .info span {
+      display: block;
+      margin: 2px 0;
+    }
+    .facility a {
+      color: #3366cc;
+      text-decoration: none;
+    }
+    .facility a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>서울시 농구장·축구장 정보 (구별)</h1>
-  <div id="buttons"></div>
+  <h1>서울시 농구장·축구장 정보 (구별) - JSON + Codetabs CORS 우회</h1>
+
+  <!-- 1) 버튼 영역 -->
+  <div id="buttons">
+    <button onclick="showFacilities('강동구')">강동구</button>
+    <button onclick="showFacilities('양천구')">양천구</button>
+    <button onclick="showFacilities('영등포구')">영등포구</button>
+    <button onclick="showFacilities('구로구')">구로구</button>
+    <button onclick="showFacilities('금천구')">금천구</button>
+  </div>
+
+  <!-- 2) 결과 출력 영역 -->
   <div id="results"></div>
 
   <script>
-    // 보여줄 5개 구
-    const desiredAreas = ["강동구", "양천구", "영등포구", "구로구", "금천구"];
+    // 전역 변수: 데이터가 로드되면 이곳에 저장됩니다.
+    let facilities = null;
+    // 데이터 로드 에러 메시지를 저장
+    let loadErrorMessage = "";
 
-    // OpenAPI 키와 URL 포맷
-    const API_KEY = "7a4c614179776f7432396372726b47";
-    const BASE_URL = "http://openapi.seoul.go.kr:8088/" + API_KEY + "/xml/ListPublicReservationSport/1/650/";
+    // 페이지 로드 시 한 번만 실행
+    window.addEventListener("DOMContentLoaded", () => {
+      // -------------- 1) API 키와 기본 URL 세팅 --------------
+      const API_KEY = "7a4c614179776f7432396372726b47";
 
-    // 종목 유형별 API URL
-    const urls = [
-      { type: "농구장", url: BASE_URL + "농구장" },
-      { type: "축구장", url: BASE_URL + "축구장" },
-        { type: "테니스장", url: BASE_URL + "테니스장" }
-    ];
+      // JSON 포맷으로 요청하기 위한 URL (END=2000)
+      const ORIGINAL_BASE_JSON = 
+        `https://openapi.seoul.go.kr/${API_KEY}/json/ListPublicReservationSport/1/2000/`;
 
-    // 두 종목을 Promise.all 로 병렬 호출
-    Promise.all(urls.map(entry =>
-      fetch(entry.url)
-        .then(res => res.text())
-        .then(str => (new DOMParser()).parseFromString(str, "text/xml"))
-        .then(xml => {
-          const rows = xml.querySelectorAll("row");
-          return Array.from(rows).map(row => ({
-            type: entry.type,
-            area:  row.querySelector("AREANM")?.textContent || "",
-            name:  row.querySelector("SVCNM")?.textContent  || "",
-            place: row.querySelector("PLACENM")?.textContent|| "",
-            tel:   row.querySelector("TEL")?.textContent    || "",
-            status:row.querySelector("SVCSTATNM")?.textContent || "",
-            url:   row.querySelector("SVCURL")?.textContent  || ""
-          }));
-        })
-    ))
-    .then(results => {
-      // 두 종목 배열 합치기
-      const facilities = results.flat()
-        // 원하는 5개 구만 필터
-        .filter(f => desiredAreas.includes(f.area));
+      // -------------- 2) Codetabs CORS 프록시 세팅 --------------
+      // Codetabs는 "api.codetabs.com/v1/proxy?quest=" 뒤에 원본 URL을 인코딩하여 붙입니다.
+      const PROXY_PREFIX = "https://api.codetabs.com/v1/proxy?quest=";
 
-      // 버튼 생성
-      const buttonsDiv = document.getElementById("buttons");
-      desiredAreas.forEach(area => {
-        const btn = document.createElement("button");
-        btn.textContent = area;
-        btn.onclick = () => showFacilities(area, facilities);
-        buttonsDiv.appendChild(btn);
+      // 농구장·축구장 JSON 요청 URL 배열
+      const urls = [
+        {
+          type: "농구장",
+          url: PROXY_PREFIX + encodeURIComponent(ORIGINAL_BASE_JSON + "농구장")
+        },
+        {
+          type: "축구장",
+          url: PROXY_PREFIX + encodeURIComponent(ORIGINAL_BASE_JSON + "축구장")
+        }
+        // 필요하다면 { type: "수영장", url: PROXY_PREFIX + encodeURIComponent(ORIGINAL_BASE_JSON + "수영장") } 추가
+      ];
+
+      // -------------- 3) fetch 타임아웃 헬퍼 함수 --------------
+      function fetchWithTimeout(resource, options = {}) {
+        const { timeout = 10000 } = options; // 기본 타임아웃 10초
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        return fetch(resource, {
+          ...options,
+          signal: controller.signal  
+        }).finally(() => clearTimeout(id));
+      }
+
+      // -------------- 4) 실제 데이터 로드 --------------
+      Promise.all(
+        urls.map(entry =>
+          fetchWithTimeout(entry.url, { timeout: 10000 })
+            .then(res => {
+              if (!res.ok) throw new Error(`Fetch 실패: HTTP ${res.status}`);
+              return res.json(); // JSON으로 직접 파싱
+            })
+            .then(json => {
+              // Codetabs 프록시를 거쳤더라도, json.ListPublicReservationSport.row 배열 형태로 내려옵니다.
+              const rows = json.ListPublicReservationSport?.row || [];
+              return rows.map(row => ({
+                type:   entry.type,                // “농구장” 또는 “축구장”
+                area:   row.AREANM   || "",        // 구 이름
+                name:   row.SVCNM    || "",        // 시설명
+                place:  row.PLACENM  || "",        // 장소
+                tel:    row.TEL      || "없음",     // 전화번호
+                status: row.SVCSTATNM|| "",        // 상태
+                url:    row.SVCURL   || ""         // 예약 링크
+              }));
+            })
+        )
+      )
+      .then(results => {
+        // results = [ [농구장 데이터 배열], [축구장 데이터 배열] ]
+        facilities = results.flat();  
+        console.log("API(JSON) 데이터 로드 완료 → 총 시설 개수:", facilities.length);
+      })
+      .catch(err => {
+        console.error("데이터 로드 중 오류 발생:", err);
+        // facilities를 빈 배열이 아닌 null로 남겨 두면 “로딩 중” 상태가 계속 뜨므로,
+        // 실제 클릭 시 “데이터 없음” 메시지를 띄우도록 하기 위해 비어 있는 배열로 세팅하고 메시지 보관
+        facilities = [];
+        loadErrorMessage = "데이터를 불러오는 중 오류가 발생했습니다.";
       });
-    })
-    .catch(err => {
-      document.getElementById("results").innerHTML = "<p>데이터 로드 중 오류가 발생했습니다.</p>";
-      console.error(err);
     });
 
-    // 버튼 클릭 시 해당 구의 시설 리스트 출력
-    function showFacilities(area, facilities) {
+    // -------------- 5) 버튼 클릭 시 해당 구만 필터해서 화면에 표시 --------------
+    function showFacilities(areaName) {
       const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = `<h2>${area} 농구장·축구장 목록</h2>`;
-      const list = facilities.filter(f => f.area === area);
+      resultsDiv.innerHTML = `<h2>${areaName} 농구장·축구장 목록</h2>`;
 
-      if (list.length === 0) {
-        resultsDiv.innerHTML += "<p>해당 구에 정보가 없습니다.</p>";
+      // (1) 아직 API 로딩이 끝나지 않았을 때 = facilities === null
+      if (facilities === null) {
+        resultsDiv.innerHTML += "<p>시설 정보를 불러오는 중입니다. 잠시만 기다려 주세요...</p>";
         return;
       }
 
+      // (2) API 로드가 끝났지만, 에러로 인해 데이터가 비어 있을 때 
+      if (facilities.length === 0) {
+        // loadErrorMessage가 비어 있지 않으면 그 메시지를 보여주고, 비어 있으면 “구 데이터 없음”
+        if (loadErrorMessage) {
+          resultsDiv.innerHTML += `<p>${loadErrorMessage}</p>`;
+        } else {
+          resultsDiv.innerHTML += "<p>해당 구에 등록된 농구장·축구장 정보가 없습니다.</p>";
+        }
+        return;
+      }
+
+      // (3) 실제 선택된 구 데이터만 필터
+      const list = facilities.filter(item => item.area === areaName);
+      if (list.length === 0) {
+        resultsDiv.innerHTML += "<p>해당 구에 등록된 농구장·축구장 정보가 없습니다.</p>";
+        return;
+      }
+
+      // (4) 필터된 데이터가 있으면 화면에 하나씩 렌더링
       list.forEach(f => {
+        let badgeClass = "";
+        if (f.type === "농구장")    badgeClass = "badge-basketball";
+        else if (f.type === "축구장") badgeClass = "badge-soccer";
+        else if (f.type === "수영장") badgeClass = "badge-swimming";
+
         const div = document.createElement("div");
         div.className = "facility";
         div.innerHTML = `
-          <span class="type">${f.type}</span>
-          <strong>${f.name}</strong><br>
-          장소: ${f.place}<br>
-          전화번호: ${f.tel || "없음"}<br>
-          상태: <strong>${f.status}</strong><br>
-          <a href="${f.url}" target="_blank">예약 링크</a>
+          <div class="header">
+            <span class="type-badge ${badgeClass}">${f.type}</span>
+            <span class="name">${f.name}</span>
+          </div>
+          <div class="info">
+            <span>장소: ${f.place}</span>
+            <span>전화번호: ${f.tel}</span>
+            <span>상태: <strong>${f.status}</strong></span>
+            <span><a href="${f.url}" target="_blank">예약 링크</a></span>
+          </div>
         `;
         resultsDiv.appendChild(div);
       });
@@ -118,5 +231,3 @@
   </script>
 </body>
 </html>
-
-
